@@ -37,7 +37,8 @@ from what the code expects.
 | `src/demo/dev_migrate.py` | Creates the tables in `dynamodb-local`. |
 | `src/demo/pynamodb_settings.py` | `PYNAMODB_CONFIG` module (points at `dynamodb-local` in dev). |
 | `src/demo/dynamodb.py` | `PageIteratorWithScanLimit` — bounds an unbounded query/scan walk. |
-| `src/demo/queries.py` | Example newest-first listing that uses the limiter + cursor pagination. |
+| `src/demo/schemas.py` | Pydantic response layer: validate straight from a pynamodb Model + `Timestamp`. |
+| `src/demo/queries.py` | Example newest-first listing: limiter + cursor pagination + typed responses. |
 | `chart/` | Helm chart that merges the generated JSON with per-table overrides. |
 | `docker-compose.yaml` | `dynamodb-local` on `localhost:5555`. |
 

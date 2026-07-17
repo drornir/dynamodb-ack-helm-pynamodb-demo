@@ -1,6 +1,7 @@
 """Example read path for the Question table -- shows the whole-table-listing GSI in
-use, cursor pagination, and where ``PageIteratorWithScanLimit`` gets swapped in to
-bound the walk (see ``demo.dynamodb`` for why that bound is necessary).
+use, cursor pagination, where ``PageIteratorWithScanLimit`` gets swapped in to bound
+the walk (see ``demo.dynamodb``), and validating pynamodb Model instances straight
+into pydantic response models (see ``demo.schemas``).
 """
 
 import base64
@@ -8,6 +9,7 @@ import json
 
 from demo.dynamodb import PageIteratorWithScanLimit
 from demo.models import Question
+from demo.schemas import QuestionListResponse, QuestionResponse
 
 
 def list_questions_newest_first(
@@ -16,7 +18,7 @@ def list_questions_newest_first(
     limit: int = 20,
     cursor: str | None = None,
     max_scanned_items: int = 10_000,
-) -> tuple[list[dict[str, object]], str | None]:
+) -> QuestionListResponse:
     """A newest-first page of questions, optionally filtered by creator.
 
     Queries the constant-hash-key GSI (``models.QuestionsByCreatedAt``) so the whole
@@ -46,11 +48,12 @@ def list_questions_newest_first(
     results.page_iter = PageIteratorWithScanLimit(results.page_iter, max_scanned_items)
 
     # Consume fully -- last_evaluated_key is only a valid cursor after exhaustion.
-    items = [q.to_simple_dict() for q in results]
+    # model_validate takes the pynamodb Model instance directly (see demo.schemas).
+    items = [QuestionResponse.model_validate(q) for q in results]
 
     next_cursor = (
         base64.urlsafe_b64encode(json.dumps(results.last_evaluated_key).encode()).decode()
         if results.last_evaluated_key
         else None
     )
-    return items, next_cursor
+    return QuestionListResponse(items=items, next_cursor=next_cursor)
