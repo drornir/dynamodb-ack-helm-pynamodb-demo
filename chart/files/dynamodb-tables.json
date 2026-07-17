@@ -1,0 +1,84 @@
+[
+  {
+    "apiVersion": "dynamodb.services.k8s.aws/v1alpha1",
+    "kind": "Table",
+    "metadata": {
+      "name": "questions"
+    },
+    "spec": {
+      "tableName": "demo-Questions",
+      "billingMode": "PAY_PER_REQUEST",
+      "tableClass": "STANDARD",
+      "attributeDefinitions": [
+        {
+          "attributeName": "id",
+          "attributeType": "S"
+        },
+        {
+          "attributeName": "created_at",
+          "attributeType": "N"
+        },
+        {
+          "attributeName": "list_gsi_pk",
+          "attributeType": "N"
+        }
+      ],
+      "keySchema": [
+        {
+          "attributeName": "id",
+          "keyType": "HASH"
+        },
+        {
+          "attributeName": "created_at",
+          "keyType": "RANGE"
+        }
+      ],
+      "globalSecondaryIndexes": [
+        {
+          "indexName": "demo-Questions-ByCreatedAt",
+          "keySchema": [
+            {
+              "attributeName": "list_gsi_pk",
+              "keyType": "HASH"
+            },
+            {
+              "attributeName": "created_at",
+              "keyType": "RANGE"
+            }
+          ],
+          "projection": {
+            "projectionType": "ALL"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "dynamodb.services.k8s.aws/v1alpha1",
+    "kind": "Table",
+    "metadata": {
+      "name": "sessions"
+    },
+    "spec": {
+      "tableName": "demo-Sessions",
+      "billingMode": "PAY_PER_REQUEST",
+      "tableClass": "STANDARD",
+      "attributeDefinitions": [
+        {
+          "attributeName": "id",
+          "attributeType": "S"
+        }
+      ],
+      "keySchema": [
+        {
+          "attributeName": "id",
+          "keyType": "HASH"
+        }
+      ],
+      "timeToLive": {
+        "attributeName": "expires_at",
+        "enabled": true
+      }
+    }
+  }
+]

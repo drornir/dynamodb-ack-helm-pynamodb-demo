@@ -1,0 +1,14 @@
+services:
+  dynamodb:
+    image: public.ecr.aws/aws-dynamodb-local/aws-dynamodb-local:latest
+    container_name: dynamodb-local
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    user: root  # the image's data dir is root-owned; the container otherwise runs as uid 1000 and can't write to it
+    ports:
+      - "5555:8000"  # dev_migrate/pynamodb default to http://localhost:5555
+    volumes:
+      - dynamodb:/home/dynamodblocal/data
+    working_dir: /home/dynamodblocal
+
+volumes:
+  dynamodb:

@@ -1,0 +1,21 @@
+[project]
+name = "dynamodb-ack-helm-pynamodb-demo"
+version = "0.1.0"
+description = "Derive AWS ACK DynamoDB Table manifests from PynamoDB models, merged into a Helm chart."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pynamodb>=6.0",
+    "boto3>=1.34",
+]
+
+[project.scripts]
+gen-ack-tables = "demo.gen_ack_tables:main"
+dev-migrate = "demo.dev_migrate:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/demo"]

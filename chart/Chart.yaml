@@ -1,0 +1,8 @@
+apiVersion: v2
+name: dynamodb-tables
+description: >-
+  Renders AWS ACK DynamoDB Table manifests generated from PynamoDB models, merged
+  with per-table overrides for the fields the models don't describe.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
