@@ -36,6 +36,8 @@ from what the code expects.
 | `src/demo/gen_ack_tables.py` | Reads `MODELS`, writes ACK `Table` specs as a JSON array. |
 | `src/demo/dev_migrate.py` | Creates the tables in `dynamodb-local`. |
 | `src/demo/pynamodb_settings.py` | `PYNAMODB_CONFIG` module (points at `dynamodb-local` in dev). |
+| `src/demo/dynamodb.py` | `PageIteratorWithScanLimit` — bounds an unbounded query/scan walk. |
+| `src/demo/queries.py` | Example newest-first listing that uses the limiter + cursor pagination. |
 | `chart/` | Helm chart that merges the generated JSON with per-table overrides. |
 | `docker-compose.yaml` | `dynamodb-local` on `localhost:5555`. |
 
@@ -136,9 +138,14 @@ copy raises `ValueError: has more than one hash key` at class-definition time.
 
 Caveat for production: this pattern funnels the whole table through one partition, and
 a `filter_condition` that matches few/no rows will walk it to exhaustion regardless of
-`limit` (`limit` bounds *results*, not *items scanned*). The real bound is a
-scanned-item budget checked between raw page fetches, not a `limit` or a wall-clock
-timeout. Out of scope for this demo, but worth knowing before you copy the pattern.
+`limit` (`limit` bounds *results*, not *items scanned*). pynamodb's `ResultIterator`
+only checks the remaining count *after* yielding an item, so a zero-match filter walks
+the whole partition *before the first item is yielded* — `limit=10` and `limit=100_000`
+do identical work. `page_size`, a wall-clock timeout, and `rate_limit=` all fail to
+bound it. The only real fix is a **scanned-item budget** checked between raw page
+fetches — `src/demo/dynamodb.py`'s `PageIteratorWithScanLimit`, swapped in for the
+iterator's `page_iter` before consuming it (see `src/demo/queries.py` for a worked
+example, including cursor pagination). Its full rationale is in the module docstring.
 
 ### 7. PynamoDB is sync-only
 
