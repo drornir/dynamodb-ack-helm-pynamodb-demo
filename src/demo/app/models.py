@@ -1,9 +1,6 @@
-"""PynamoDB models -- the single source of truth for both dev-time table migration
-(``dev_migrate.py``) and ACK manifest generation (``gen_ack_tables.py``).
-
-Add a model to ``MODELS`` and it is picked up by both: the local ``dynamodb-local``
-table *and* the deployed AWS table (via the generated ACK ``Table`` manifest) are
-derived from the same class, so they can't drift apart.
+"""The pynamodb Model classes -- runtime code (``app/``). The list of which models
+need a real table lives in ``scripts/models.py`` (dev tooling), which imports these.
+Runtime code never imports from ``scripts/``; only the other direction.
 """
 
 from datetime import UTC, datetime
@@ -12,10 +9,7 @@ from pynamodb.attributes import NumberAttribute, TTLAttribute, UnicodeAttribute
 from pynamodb.indexes import AllProjection, GlobalSecondaryIndex
 from pynamodb.models import Model
 
-# Prefixing AWS-side table names keeps them unique across stacks/envs that share one
-# AWS account. It's stripped back off when deriving the (already namespaced) k8s
-# object name -- see ``gen_ack_tables._k8s_resource_name``.
-TABLES_PREFIX = "demo-"
+from demo.app.consts import TABLES_PREFIX
 
 
 class QuestionsByCreatedAt(GlobalSecondaryIndex["Question"]):
@@ -59,6 +53,3 @@ class Session(Model):
 
     id = UnicodeAttribute(hash_key=True)
     expires_at = TTLAttribute()
-
-
-MODELS: list[type[Model]] = [Question, Session]

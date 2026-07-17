@@ -7,9 +7,9 @@ into pydantic response models (see ``demo.schemas``).
 import base64
 import json
 
-from demo.dynamodb import PageIteratorWithScanLimit
-from demo.models import Question
-from demo.schemas import QuestionListResponse, QuestionResponse
+from demo.app.dynamodb import PageIteratorWithScanLimit
+from demo.app.models import Question
+from demo.app.schemas import QuestionListResponse, QuestionResponse
 
 
 def list_questions_newest_first(

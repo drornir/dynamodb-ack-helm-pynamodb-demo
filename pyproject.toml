@@ -11,8 +11,8 @@ dependencies = [
 ]
 
 [project.scripts]
-gen-ack-tables = "demo.gen_ack_tables:main"
-dev-migrate = "demo.dev_migrate:main"
+gen-ack-tables = "demo.scripts.gen_ack_tables:main"
+dev-migrate = "demo.scripts.dev_migrate:main"
 
 [build-system]
 requires = ["hatchling"]

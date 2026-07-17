@@ -1,5 +1,5 @@
 """Generate ACK (AWS Controllers for Kubernetes) ``dynamodb.services.k8s.aws/v1alpha1``
-``Table`` manifests from the pynamodb models in ``demo.models.MODELS``.
+``Table`` manifests from the pynamodb models in ``demo.scripts.models.MODELS``.
 
 Writes a single top-level JSON array to the path given as the first argument, or to
 stdout if it's omitted or "-". JSON (a subset of YAML) is read by Helm's
@@ -27,11 +27,12 @@ from pynamodb.constants import PAY_PER_REQUEST_BILLING_MODE, PROVISIONED_BILLING
 from pynamodb.indexes import Index, LocalSecondaryIndex
 from pynamodb.models import Model
 
-from demo.introspect import declared_indexes, key_schema, ttl_attribute_name
-from demo.models import MODELS, TABLES_PREFIX
+from demo.app.consts import TABLES_PREFIX
+from demo.scripts.introspect import declared_indexes, key_schema, ttl_attribute_name
+from demo.scripts.models import MODELS
 
-# src/demo/gen_ack_tables.py -> src/demo -> src -> repo root.
-_REPO_ROOT = Path(__file__).resolve().parents[2]
+# src/demo/scripts/gen_ack_tables.py -> scripts -> demo -> src -> repo root.
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 _CHART_TABLES_FILE = _REPO_ROOT / "chart" / "files" / "dynamodb-tables.json"
 
 # DNS subdomain name limit (RFC 1123) that k8s object names must fit.

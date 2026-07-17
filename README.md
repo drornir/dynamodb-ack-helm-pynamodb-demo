@@ -10,12 +10,12 @@ The model is the single source of truth, so the deployed table can't silently dr
 from what the code expects.
 
 ```
-                    demo/models.py  (PynamoDB Model classes)
-                            │  MODELS = [...]
-              ┌─────────────┴──────────────┐
+                app/models.py  (PynamoDB Model classes)
+                          │  scripts/models.py: MODELS = [...]
+              ┌───────────┴───────────────┐
               ▼                            ▼
-   demo/dev_migrate.py            demo/gen_ack_tables.py
-   create tables in                emit chart/files/dynamodb-tables.json
+ scripts/dev_migrate.py         scripts/gen_ack_tables.py
+   create tables in              emit chart/files/dynamodb-tables.json
    dynamodb-local                          │  (ACK Table specs, as JSON)
    (local dev)                             ▼
                               chart/templates/dynamodb-tables.yaml
@@ -29,16 +29,22 @@ from what the code expects.
 
 ## Layout
 
+Split into **`app/`** (runtime code) and **`scripts/`** (dev tooling / one-off
+generators). The one rule: `scripts/` imports from `app/`, never the reverse — the
+production code has no dependency on the tooling.
+
 | Path | What it is |
 | --- | --- |
-| `src/demo/models.py` | PynamoDB models + `MODELS` list (the source of truth). |
-| `src/demo/introspect.py` | Reflection helpers: key schema, indexes, TTL attribute. |
-| `src/demo/gen_ack_tables.py` | Reads `MODELS`, writes ACK `Table` specs as a JSON array. |
-| `src/demo/dev_migrate.py` | Creates the tables in `dynamodb-local`. |
+| `src/demo/app/models.py` | PynamoDB Model classes (the source of truth). |
+| `src/demo/app/consts.py` | `TABLES_PREFIX`. |
+| `src/demo/app/dynamodb.py` | `PageIteratorWithScanLimit` — bounds an unbounded query/scan walk. |
+| `src/demo/app/schemas.py` | Pydantic response layer: validate straight from a pynamodb Model + `Timestamp`. |
+| `src/demo/app/queries.py` | Example newest-first listing: limiter + cursor pagination + typed responses. |
+| `src/demo/scripts/models.py` | `MODELS` list — which models need a real table (imports from `app/`). |
+| `src/demo/scripts/introspect.py` | Reflection helpers: key schema, indexes, TTL attribute. |
+| `src/demo/scripts/gen_ack_tables.py` | Reads `MODELS`, writes ACK `Table` specs as a JSON array. |
+| `src/demo/scripts/dev_migrate.py` | Creates the tables in `dynamodb-local`. |
 | `src/demo/pynamodb_settings.py` | `PYNAMODB_CONFIG` module (points at `dynamodb-local` in dev). |
-| `src/demo/dynamodb.py` | `PageIteratorWithScanLimit` — bounds an unbounded query/scan walk. |
-| `src/demo/schemas.py` | Pydantic response layer: validate straight from a pynamodb Model + `Timestamp`. |
-| `src/demo/queries.py` | Example newest-first listing: limiter + cursor pagination + typed responses. |
 | `chart/` | Helm chart that merges the generated JSON with per-table overrides. |
 | `docker-compose.yaml` | `dynamodb-local` on `localhost:5555`. |
 
@@ -144,8 +150,8 @@ only checks the remaining count *after* yielding an item, so a zero-match filter
 the whole partition *before the first item is yielded* — `limit=10` and `limit=100_000`
 do identical work. `page_size`, a wall-clock timeout, and `rate_limit=` all fail to
 bound it. The only real fix is a **scanned-item budget** checked between raw page
-fetches — `src/demo/dynamodb.py`'s `PageIteratorWithScanLimit`, swapped in for the
-iterator's `page_iter` before consuming it (see `src/demo/queries.py` for a worked
+fetches — `src/demo/app/dynamodb.py`'s `PageIteratorWithScanLimit`, swapped in for the
+iterator's `page_iter` before consuming it (see `src/demo/app/queries.py` for a worked
 example, including cursor pagination). Its full rationale is in the module docstring.
 
 ### 7. PynamoDB is sync-only
